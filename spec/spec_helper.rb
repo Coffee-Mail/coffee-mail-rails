@@ -7,6 +7,8 @@ SimpleCov.start do
   add_filter "/spec/"
   add_filter "/tools/"
   add_filter "/rubocop/"
+  add_filter "/sdk/"
+  add_filter "/vendor/"
   minimum_coverage line: 85, branch: 78
 end
 
