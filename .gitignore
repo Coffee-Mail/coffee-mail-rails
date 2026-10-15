@@ -1,0 +1,15 @@
+*.gem
+.DS_Store
+.gem_rbs_collection/
+.idea/
+.rspec_status
+.vscode/
+/.bundle/
+/.steep/
+/.yardoc/
+/coverage/
+/doc/
+/pkg/
+/tmp/
+/vendor/
+Gemfile.lock

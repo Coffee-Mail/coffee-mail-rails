@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+Rails.application.configure do
+  config.coffeemail.api_key = Rails.application.credentials.dig(:coffeemail, :api_key) || ENV.fetch("COFFEEMAIL_API_KEY", nil)
+  config.coffeemail.locale = ENV.fetch("COFFEEMAIL_LOCALE", "pt-BR")
+  config.coffeemail.timeout = 10
+  config.coffeemail.webhook_secret = Rails.application.credentials.dig(:coffeemail, :webhook_secret) ||
+                                     ENV.fetch("COFFEEMAIL_WEBHOOK_SECRET", nil)
+  config.coffeemail.webhook_tolerance = 300
+end

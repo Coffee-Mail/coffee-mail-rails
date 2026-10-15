@@ -1,0 +1,161 @@
+module CoffeeMail
+  module Rails
+    VERSION: String
+    NOTIFICATION: String
+    LOCK: Thread::Mutex
+
+    self.@configuration: Configuration
+    self.@client: CoffeeMail::Client?
+    @configuration: Configuration
+    @client: CoffeeMail::Client?
+
+    def self?.setup: (options: ActiveSupport::OrderedOptions, ?credentials: ^() -> untyped) -> Configuration
+    def self?.configure: () { (ActiveSupport::OrderedOptions) -> void } -> Configuration
+    def self?.configuration: () -> Configuration
+    def self?.client: () -> CoffeeMail::Client
+    def self?.reset!: () -> nil
+    def self?.on_webhook: (*String event_types) { (CoffeeMail::Webhook::Event, Hash[Symbol, untyped]) -> void } -> untyped
+    def self?.dispatch: (^(CoffeeMail::Webhook::Event, Hash[Symbol, untyped]) -> void handler, Array[String] event_types, untyped payload) -> void
+
+    module Messages
+      PT_BR: Hash[Symbol, String]
+      EN: Hash[Symbol, String]
+      CATALOG: Hash[String, Hash[Symbol, String]]
+
+      def self?.message: (String locale, Symbol key, ?Hash[Symbol, untyped] params) -> String
+    end
+
+    class Configuration
+      ENV_KEYS: Hash[Symbol, String]
+      DEFAULT_TIMEOUT: Integer
+      DEFAULT_WEBHOOK_TOLERANCE: Integer
+      NUMERIC: Regexp
+
+      @credentials: ^() -> untyped
+      @env: untyped
+
+      attr_reader options: ActiveSupport::OrderedOptions
+
+      def initialize: (?options: ActiveSupport::OrderedOptions, ?credentials: ^() -> untyped, ?env: untyped) -> void
+      def api_key: () -> String?
+      def locale: () -> String
+      def timeout: () -> (Integer | Float)
+      def retry_policy: () -> CoffeeMail::RetryPolicy?
+      def transport: () -> CoffeeMail::_Transport?
+      def webhook_secret: () -> String?
+      def webhook_tolerance: () -> Integer
+      def client_options: (?Hash[untyped, untyped] overrides) -> Hash[Symbol, untyped]
+      def inspect: () -> String
+
+      private
+
+      def resolve: (Symbol key) -> untyped
+      def credential: (Symbol key) -> untyped
+      def present?: (untyped value) -> bool
+      def numeric: (untyped value, Integer fallback) -> (Integer | Float)
+    end
+
+    class DeliveryError < StandardError
+      attr_reader error: CoffeeMail::Error?
+
+      def initialize: (String message, ?error: CoffeeMail::Error?) -> void
+      def code: () -> String?
+      def cause: () -> Exception?
+    end
+
+    module MessageMapper
+      IGNORED_HEADERS: Array[String]
+      IDEMPOTENCY_HEADERS: Array[String]
+      SANDBOX_HEADER: String
+      SCHEDULED_AT_HEADER: String
+      CONTROL_HEADERS: Array[String]
+      TRUTHY: Array[String]
+      HTML_MIME: String
+      INLINE: String
+      ATTACHMENT: String
+      CID_DELIMITERS: String
+
+      class Result < Data
+        attr_reader payload: untyped
+        attr_reader error_key: Symbol?
+
+        def self.new: (payload: untyped, error_key: Symbol?) -> instance
+      end
+
+      def self?.call: (untyped mail) -> Result
+      def self?.payload: (untyped mail, Hash[Symbol, untyped] from, Array[Hash[Symbol, untyped]] to) -> Hash[Symbol, untyped]
+      def self?.addresses: (untyped mail, Symbol field) -> Array[Hash[Symbol, untyped]]
+      def self?.address: (untyped addr) -> Hash[Symbol, untyped]
+      def self?.bodies: (untyped mail) -> Hash[Symbol, untyped]
+      def self?.attachments: (untyped mail) -> Array[Hash[Symbol, untyped]]
+      def self?.content_id: (untyped part) -> String?
+      def self?.custom_headers: (untyped mail) -> Hash[String, String]
+      def self?.controls: (untyped mail) -> Hash[Symbol, untyped]
+      def self?.header_value: (untyped mail, String name) -> String?
+      def self?.non_empty: (untyped collection) -> untyped
+    end
+
+    class DeliveryMethod
+      attr_reader settings: Hash[untyped, untyped]
+
+      def initialize: (?Hash[untyped, untyped] settings) -> void
+      def deliver!: (untyped mail) -> CoffeeMail::Response[untyped]
+
+      private
+
+      def send_through_api: (untyped mail, untyped payload) -> CoffeeMail::Response[untyped]
+      def client: () -> CoffeeMail::Client
+      def locale: () -> String
+      def delivery_error: (CoffeeMail::Error error) -> DeliveryError
+    end
+
+    class WebhookApp
+      POST: String
+      IDEMPOTENCY_ENV: String
+      JSON_HEADERS: Hash[String, String]
+      FAILURE_STATUSES: Hash[Symbol, Integer]
+      UNAUTHORIZED: Integer
+      NO_CONTENT: Integer
+      METHOD_NOT_ALLOWED: Integer
+      SERVER_ERROR: Integer
+      FAILURE_MESSAGES: Hash[Symbol, Symbol]
+
+      @configuration: Configuration?
+
+      def initialize: (?configuration: Configuration?) -> void
+      def call: (Hash[String, untyped] env) -> [Integer, Hash[String, String], Array[String]]
+
+      private
+
+      def configuration: () -> Configuration
+      def verify: (Hash[String, untyped] env, String secret) -> [Integer, Hash[String, String], Array[String]]
+      def publish: (CoffeeMail::Webhook::Event event, String? idempotency_key) -> [Integer, Hash[String, String], Array[String]]
+      def failure: (Symbol reason) -> [Integer, Hash[String, String], Array[String]]
+      def reply: (Integer status, Symbol key) -> [Integer, Hash[String, String], Array[String]]
+    end
+
+    class Railtie < ::Rails::Railtie
+    end
+  end
+end
+
+module Coffeemail
+  module Generators
+    class InstallGenerator < ::Rails::Generators::Base
+      ROUTE: String
+      DELIVERY_METHOD: String
+      CONFIGURE_ANCHOR: Regexp
+      INITIALIZER: String
+      ROUTES: String
+      PRODUCTION: String
+
+      def create_initializer: () -> void
+      def mount_webhook_route: () -> void
+      def configure_delivery_method: () -> void
+
+      private
+
+      def contains?: (String relative, String text) -> bool
+    end
+  end
+end

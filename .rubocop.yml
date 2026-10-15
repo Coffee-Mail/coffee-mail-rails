@@ -1,0 +1,117 @@
+plugins:
+  - rubocop-performance
+  - rubocop-rspec
+
+require:
+  - ./rubocop/coffeemail.rb
+
+AllCops:
+  TargetRubyVersion: 3.3
+  NewCops: enable
+  SuggestExtensions: false
+  Exclude:
+    - vendor/**/*
+    - tmp/**/*
+    - pkg/**/*
+    - lib/generators/**/templates/**/*
+
+CoffeeMail/NoComments:
+  Enabled: true
+
+CoffeeMail/NoElse:
+  Enabled: true
+
+CoffeeMail/NoCase:
+  Enabled: true
+
+CoffeeMail/MaxDepth:
+  Enabled: true
+  Max: 3
+
+CoffeeMail/RescueOnlyInAdapters:
+  Enabled: true
+  Include:
+    - lib/**/*.rb
+  AllowedFiles:
+    - lib/coffeemail/rails/delivery_method.rb
+    - lib/coffeemail/rails/webhook_app.rb
+
+CoffeeMail/NoConsole:
+  Enabled: true
+  Include:
+    - lib/**/*.rb
+
+Metrics/BlockNesting:
+  Max: 3
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/Documentation:
+  Include:
+    - lib/**/*.rb
+  Exclude:
+    - lib/coffeemail/internal/**/*.rb
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - '\A\s*#'
+
+Metrics/MethodLength:
+  Max: 15
+
+Metrics/ClassLength:
+  Max: 200
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*.rb
+    - coffeemail.gemspec
+
+RSpec/ExampleLength:
+  Max: 20
+
+RSpec/MultipleExpectations:
+  Max: 6
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+
+# O Steep não infere tipos no bloco de Data.define nem em ** anônimo; herança e kwargs nomeados mantêm a tipagem estrita.
+Style/DataInheritance:
+  Enabled: false
+
+Style/ArgumentsForwarding:
+  UseAnonymousForwarding: false
+
+# Specs de configuração, gates e rotas descrevem comportamento transversal, não uma única classe.
+RSpec/DescribeClass:
+  Exclude:
+    - spec/quality/**/*.rb
+
+
+# lib/coffeemail-rails.rb existe para o require automático do Bundler (nome da gem com hífen).
+Naming/FileName:
+  Exclude:
+    - bin/*
+    - lib/coffeemail-rails.rb
